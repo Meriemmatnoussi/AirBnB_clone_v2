@@ -4,7 +4,7 @@ from fabric.api import *
 from os.path import exists, splitext
 
 
-env.hosts = ["52.91.147.26", "100.25.188.140"]
+env.hosts = ["52.87.152.249", "18.235.249.248"]
 
 
 @task

@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 """This module defines a class to manage file storage for hbnb clone"""
 import json
-import re
 
 
 class FileStorage:
@@ -11,14 +10,16 @@ class FileStorage:
 
     def all(self, cls=None):
         """Returns a dictionary of models currently in storage"""
-        if cls is not None:
-            filtered = {}
-            for k, v in FileStorage.__objects.items():
-                if isinstance(v, cls):
-                    filtered[k] = v
-            return filtered
-        else:
+        if cls is None:
             return FileStorage.__objects
+
+        obj = {}
+        for key in self.__objects.keys():
+            className = key.split(".")[0]
+            if cls.__name__ == className:
+                obj[key] = self.__objects[key]
+
+        return obj
 
     def new(self, obj):
         """Adds new object to storage dictionary"""
@@ -26,6 +27,7 @@ class FileStorage:
 
     def save(self):
         """Saves storage dictionary to file"""
+        # print(dir(self.__dict__))
         with open(FileStorage.__file_path, 'w') as f:
             temp = {}
             temp.update(FileStorage.__objects)
@@ -44,10 +46,14 @@ class FileStorage:
         from models.review import Review
 
         classes = {
-                    'BaseModel': BaseModel, 'User': User, 'Place': Place,
-                    'State': State, 'City': City, 'Amenity': Amenity,
-                    'Review': Review
-                  }
+            'BaseModel': BaseModel,
+            'User': User,
+            'Place': Place,
+            'State': State,
+            'City': City,
+            'Amenity': Amenity,
+            'Review': Review
+        }
         try:
             temp = {}
             with open(FileStorage.__file_path, 'r') as f:
@@ -58,7 +64,21 @@ class FileStorage:
             pass
 
     def delete(self, obj=None):
-        """Deletes an object @obj of __objects"""
-        if obj is not None:
-            key = [k for k, v in FileStorage.__objects.items() if v is obj][0]
-            del FileStorage.__objects[key]
+        """deletes an object from __objects
+
+        Args:
+            obj (_type_, optional): the object to delete
+        """
+        if obj is None:
+            return
+
+        objKey = f"{obj.__class__.__name__}.{obj.id}"
+
+        try:
+            del self.__objects[objKey]
+        except KeyError:
+            return
+
+    def close(self):
+        """call reload() method for deserializing the JSON file to objects"""
+        self.reload()
